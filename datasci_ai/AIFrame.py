@@ -21,7 +21,7 @@ Below is an instruction that describes a programming task. Write a response in p
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
         exec(f"{self.name} = self.copy()")
         if addon:
-            query = query + "\n" + addon
+            full_query = query + "\n" + addon
 
         if max_iters > 0:
 
@@ -30,7 +30,7 @@ Below is an instruction that describes a programming task. Write a response in p
             except AttributeError as err:
                 tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
                 msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
-                self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                self.request(full_query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             except Exception as f:
                 language = reply.extract_language()
                 raise errors.LanguageError(language)
@@ -39,7 +39,7 @@ Below is an instruction that describes a programming task. Write a response in p
             except Exception as e: 
                 tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}"
-                self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                self.request(full_query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
             
