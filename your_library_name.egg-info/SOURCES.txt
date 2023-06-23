@@ -1,0 +1,15 @@
+LICENSE
+README.md
+setup.py
+datasci_ai/AIFrame.py
+datasci_ai/__init__.py
+datasci_ai/errors.py
+datasci_ai/model.py
+datasci_ai/temp.py
+tests/__init__.py
+tests/test_model.py
+your_library_name.egg-info/PKG-INFO
+your_library_name.egg-info/SOURCES.txt
+your_library_name.egg-info/dependency_links.txt
+your_library_name.egg-info/requires.txt
+your_library_name.egg-info/top_level.txt
