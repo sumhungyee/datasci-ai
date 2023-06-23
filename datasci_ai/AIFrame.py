@@ -20,8 +20,8 @@ Below is an instruction that describes a programming task. Write a response in p
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
         exec(f"{self.name} = self.copy()")
-        if addon:
-            full_query = query + "\n" + addon
+        
+        full_query = query + "\n" + addon if addon else query
 
         if max_iters > 0:
 
