@@ -1,2 +1,0 @@
-datasci_ai
-tests

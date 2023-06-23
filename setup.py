@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='your-library-name',
+    name='datasci-ai',
     version='1.0.0',
     author='Sum Hung Yee',
     author_email='hungyee2013@email.com',
