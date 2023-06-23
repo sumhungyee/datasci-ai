@@ -28,7 +28,7 @@ Below is an instruction that describes a programming task. Write a response in p
             try:
                 code = reply.extract_code(start_token=start_token)
             except AttributeError as err:
-                tqdm.write(f"Error encountered: {max_iters-1} tries left. Error: {err}")
+                tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
                 msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
                 self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             except Exception as f:
@@ -37,7 +37,7 @@ Below is an instruction that describes a programming task. Write a response in p
             try:
                 exec(code)
             except Exception as e: 
-                tqdm.write(f"Error encountered: {max_iters-1} tries left. Error: {e}")               
+                tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}"
                 self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
