@@ -1,6 +1,7 @@
 
 from ctransformers import AutoModelForCausalLM
 import time
+from tqdm import tqdm
 import re
 
 class LLM:
@@ -11,12 +12,15 @@ class LLM:
             self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type)
         self.last_reply = ""
         
-    def generate_reply(self, prompt, prompt_template):
+    def generate_reply(self, prompt, verbose=False):
         self.clear_last_reply()
         start = time.time()
-        tokens = self.model.tokenize(prompt_template.format(prompt=prompt))
+        tokens = self.model.tokenize(prompt)
         for token in self.model.generate(tokens):
-            self.last_reply += self.model.detokenize(token)
+            next_token = self.model.detokenize(token)
+            if verbose:
+                tqdm.write(next_token, end="")
+            self.last_reply += next_token
         end = time.time()
         return Reply(self.last_reply, end - start)
         
