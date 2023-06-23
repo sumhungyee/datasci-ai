@@ -7,7 +7,7 @@ class AIDataFrame(pd.DataFrame):
         super().__init__(data=data, index=index, columns=columns, dtype=dtype, copy=copy)
         self.llm = llm
         self.name = "ddff"
-        self.df_details = f"""{self.name} is a pandas dataframe. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the list of its columns are {list(self.columns)}.
+        self.df_details = f"""You are provided a pandas dataframe stored under the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the list of its columns are {list(self.columns)}.
 Here is a header of {self.name}:\n{self.head().to_string(index=False)}\n"""
         self.prompt = """
 Below is an instruction that describes a programming task. Write a response in python that appropriately completes the request in markdown format, using one code block without explanations.   
