@@ -41,7 +41,7 @@ Below is an instruction that describes a programming task. Write a response in p
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}"
                 self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
-            return eval(f"{self.name}")
+            return AIDataFrame(self.llm, data=eval(f"{self.name}"))
             
 
 

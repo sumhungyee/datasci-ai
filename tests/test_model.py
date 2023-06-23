@@ -1,5 +1,5 @@
 
-from datasci_ai import model, errors
+from datasci_ai import LLM
 import pandas as pd
 import numpy as np
 import re
@@ -8,7 +8,7 @@ import unittest
 
 class ModelTest(unittest.TestCase):
     def setUp(self):
-        self.llm = model.LLM(path="C:\WizardCoder-15B-1.0.ggmlv3.q4_1.bin")
+        self.llm = LLM(path="C:\WizardCoder-15B-1.0.ggmlv3.q4_1.bin")
         self.df = pd.DataFrame(data={'x': [i for i in range(10)], 'y': [2 * j + 3 for j in range(10)]})
 
     
