@@ -6,7 +6,7 @@ class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
         super().__init__(data=data, index=index, columns=columns, dtype=dtype, copy=copy)
         self.llm = llm
-        self.name = "ddff"
+        self.name = "tempdf"
         self.df_details = f"""You are provided a pandas dataframe stored under the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the list of its columns are {list(self.columns)}.
 Here is a header of {self.name}:\n{self.head().to_string(index=False)}\n"""
         self.prompt = """
