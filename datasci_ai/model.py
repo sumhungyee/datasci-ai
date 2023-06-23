@@ -27,8 +27,6 @@ class Reply:
         time elapsed: {time}
         """
         return representation.format(text=self.text, time=self.time_elapsed)
-    
-
 
 class LLM:
     def __init__(self, path=None, model_file='WizardCoder-15B-1.0.ggmlv3.q4_1.bin', link='TheBloke/WizardCoder-15B-1.0-GGML', model_type='starcoder', llm_model=None):
