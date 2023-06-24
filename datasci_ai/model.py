@@ -24,8 +24,6 @@ class Reply:
         except Exception:
             raise CodeDetectionError() from None
 
-    
-
 
     def __str__(self):
         representation = """
@@ -35,13 +33,13 @@ class Reply:
         return representation.format(text=self.text, time=self.time_elapsed)
 
 class LLM:
-    def __init__(self, path=None, model_file='WizardCoder-15B-1.0.ggmlv3.q4_1.bin', link='TheBloke/WizardCoder-15B-1.0-GGML', model_type='starcoder', llm_model=None):
+    def __init__(self, path=None, model_file='WizardCoder-15B-1.0.ggmlv3.q4_1.bin', link='TheBloke/WizardCoder-15B-1.0-GGML', model_type='starcoder', llm_model=None, temperature=0.5):
         if llm_model:
             self.model = llm_model
         elif not path:
-            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file)
+            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file, temperature=temperature)
         else:
-            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type)
+            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type, temperature=temperature)
         self.last_reply = ""
         
     def generate_reply(self, prompt, verbose=False) -> Reply:
