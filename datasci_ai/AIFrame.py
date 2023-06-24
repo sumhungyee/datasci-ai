@@ -1,6 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
-from datasci_ai.errors import DataSciAIError, LanguageError, CodeDetectionError
+from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError
 
 class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
@@ -15,7 +15,7 @@ Below is an instruction that describes a programming task. Write a response in p
 ### Response:
 """
 
-    def request(self, query, verbose=False, addon="", max_iters=5):
+    def request(self, query, verbose=True, addon="", max_iters=5):
         full_query = query + "\n" + addon if addon else query
         full_prompt = self.prompt.format(df_details=self.df_details, query=full_query)
         start_token = r"```(python)?\r"
@@ -24,7 +24,6 @@ Below is an instruction that describes a programming task. Write a response in p
         
         
         if max_iters > 0:
-
             try:
                 code = reply.extract_code(start_token=start_token)
             except AttributeError as err:
@@ -37,7 +36,8 @@ Below is an instruction that describes a programming task. Write a response in p
                     return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
 
             except Exception as f:
-                raise CodeDetectionError()
+                tqdm.write(f"\nError detecting code! {max_iters-1} tries left.")
+                return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
             try:
                 exec(code)
@@ -47,6 +47,24 @@ Below is an instruction that describes a programming task. Write a response in p
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
+        
+        else:
+            try:
+                code = reply.extract_code(start_token=start_token)
+            except Exception:
+                language = reply.extract_language()
+                if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
+                    raise LanguageError(language)
+                raise CodeDetectionError()
+            try:
+                exec(code)
+            except Exception as ex:
+                raise CodeGenerationError(ex)
+            
+            return AIDataFrame(self.llm, data=eval(f"{self.name}"))
+
+        
+        
             
     
     def copy(self):

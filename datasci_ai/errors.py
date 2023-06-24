@@ -12,3 +12,8 @@ class CodeDetectionError(DataSciAIError):
     def __init__(self):
         self.message = "No code blocks detected! Cannot execute code!"
         super().__init__(self.message)
+
+class CodeGenerationError(DataSciAIError):
+    def __init__(self, error):
+        self.message = f"The generated code produces an error: {str(error)}"
+        super().__init__(self.message)
