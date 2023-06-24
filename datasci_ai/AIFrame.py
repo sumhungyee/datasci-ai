@@ -1,5 +1,4 @@
 import pandas as pd
-from tqdm import tqdm
 from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError
 
 class AIDataFrame(pd.DataFrame):
@@ -31,19 +30,19 @@ Below is an instruction that describes a programming task. Write a response in p
                 if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
                     raise LanguageError(language) from None
                 else:
-                    tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
+                    print(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
                     msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
                     return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
 
             except Exception as f:
-                tqdm.write(f"\nError detecting code! {max_iters-1} tries left.")
+                print(f"\nError detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
             try:
                 exec(code)
             except Exception as e: 
-                tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
-                msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}"
+                print(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
+                msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors."
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
