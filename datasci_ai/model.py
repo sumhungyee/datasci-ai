@@ -1,6 +1,7 @@
 
 from ctransformers import AutoModelForCausalLM
 import time
+from datasci_ai.errors import CodeDetectionError
 from tqdm import tqdm
 import re
 
@@ -18,7 +19,12 @@ class Reply:
     
     def extract_language(self, start_token=r"```.*?\r") -> str:
         start_token = start_token
-        return re.search(start_token, self.text).group()[3:-1]
+        try:
+            return re.search(start_token, self.text).group()[3:-1]
+        except:
+            raise CodeDetectionError()
+
+    
 
 
     def __str__(self):
