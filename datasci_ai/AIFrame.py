@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError
 
 class AIDataFrame(pd.DataFrame):
@@ -9,14 +10,14 @@ class AIDataFrame(pd.DataFrame):
         self.df_details = f"""You are provided a pandas dataframe stored under the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the list of its columns are {list(self.columns)}.
 Here is a header of {self.name}:\n{self.head().to_string(index=False)}\n"""
         self.prompt = """
-Below is an instruction that describes a programming task. Write a response in python that appropriately completes the request in markdown format, using one code block without explanations.   
-### Instruction: {df_details} {query}
+{df_details}Below is an instruction that describes a programming task. Write a response in python that appropriately completes the request in markdown format, using the provided dataframe {name} unless instructed otherwise. Use only one code block.  
+### Instruction: {query}
 ### Response:
 """
 
     def request(self, query, verbose=True, addon="", max_iters=5):
         full_query = query + "\n" + addon if addon else query
-        full_prompt = self.prompt.format(df_details=self.df_details, query=full_query)
+        full_prompt = self.prompt.format(df_details=self.df_details, query=full_query, name=self.name)
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
         exec(f"{self.name} = self.copy()")
@@ -42,7 +43,8 @@ Below is an instruction that describes a programming task. Write a response in p
                 exec(code)
             except Exception as e: 
                 print(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
-                msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors."
+                msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors, writing code in markdown format using one code block."
+                plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
