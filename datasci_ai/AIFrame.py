@@ -1,6 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
-from datasci_ai import errors
+from datasci_ai.errors import DataSciAIError, LanguageError, CodeDetectionError
 
 class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
@@ -16,36 +16,39 @@ Below is an instruction that describes a programming task. Write a response in p
 """
 
     def request(self, query, verbose=False, addon="", max_iters=5):
-        full_prompt = self.prompt.format(df_details=self.df_details, query=query)
+        full_query = query + "\n" + addon if addon else query
+        full_prompt = self.prompt.format(df_details=self.df_details, query=full_query)
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
         exec(f"{self.name} = self.copy()")
         
-        full_query = query + "\n" + addon if addon else query
-
+        
         if max_iters > 0:
 
             try:
                 code = reply.extract_code(start_token=start_token)
             except AttributeError as err:
-                tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
-                msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
-                self.request(full_query, verbose=verbose, addon=msg, max_iters=max_iters-1)
-            except Exception as f:
                 language = reply.extract_language()
-                raise errors.LanguageError(language)
+                if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
+                    raise LanguageError(language)
+                else:
+                    tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
+                    msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
+                    return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+
+            except Exception as f:
+                raise CodeDetectionError()
+            
             try:
                 exec(code)
             except Exception as e: 
                 tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}"
-                self.request(full_query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
             
-
-
-
+    
     def copy(self):
         df = super().copy()
         return AIDataFrame(self.llm, data=df)

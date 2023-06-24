@@ -8,3 +8,7 @@ class LanguageError(DataSciAIError):
         self.message = f"Expected python, got {language}!"
         super.__init__(self.message)
 
+class CodeDetectionError(DataSciAIError):
+    def __init__(self):
+        self.message = "No code blocks detected! Cannot execute code!"
+        super.__init__(self.message)
