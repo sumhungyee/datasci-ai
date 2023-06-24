@@ -29,7 +29,7 @@ Below is an instruction that describes a programming task. Write a response in p
             except AttributeError as err:
                 language = reply.extract_language()
                 if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
-                    raise LanguageError(language)
+                    raise LanguageError(language) from None
                 else:
                     tqdm.write(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
                     msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
@@ -54,12 +54,12 @@ Below is an instruction that describes a programming task. Write a response in p
             except Exception:
                 language = reply.extract_language()
                 if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
-                    raise LanguageError(language)
-                raise CodeDetectionError()
+                    raise LanguageError(language) from None
+                raise CodeDetectionError() from None
             try:
                 exec(code)
             except Exception as ex:
-                raise CodeGenerationError(ex)
+                raise CodeGenerationError(ex) from None
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
 

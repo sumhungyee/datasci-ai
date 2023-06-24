@@ -21,8 +21,8 @@ class Reply:
         start_token = start_token
         try:
             return re.search(start_token, self.text).group()[3:-1]
-        except:
-            raise CodeDetectionError()
+        except Exception:
+            raise CodeDetectionError() from None
 
     
 
