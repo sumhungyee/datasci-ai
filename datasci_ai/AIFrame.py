@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
+import warnings
 from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError
 
 class AIDataFrame(pd.DataFrame):
