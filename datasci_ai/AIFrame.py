@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError
+import re
+from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError
 
 class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
@@ -23,6 +24,7 @@ class AIDataFrame(pd.DataFrame):
         
         
         if max_iters > 0:
+            # Try extracting code from reply
             try:
                 code = reply.extract_code(start_token=start_token)
             except AttributeError as err:
@@ -38,13 +40,20 @@ class AIDataFrame(pd.DataFrame):
                 print(f"\nError detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
+            # Check if it loads data
             try:
-                exec(code)
-            except FileNotFoundError as fe:
-                print(f"\nError encountered: {max_iters-1} tries left. Erroneous rereading of data detected.")
-                msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{fe.__class__.__name__}: {fe}\n {self.name} already contains data, and there is no need to use pd.read_csv(). Correct these errors, writing code in markdown format using one code block."
+                self.check_illegal_operations(code)
+
+            except IllegalLoadingError as i:
+                print(f"\nError encountered: {max_iters-1} tries left. Error: {i}")
+                msg = f"You provided this code:\n{code}\nHowever, you reassigned {self.name} to another value, when {self.name} already contains data.\n Omit this line and rewrite the code."
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+
+            # Try executing code
+            try:
+                exec(code)
+        
             
             except Exception as e: 
                 print(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
@@ -70,8 +79,13 @@ class AIDataFrame(pd.DataFrame):
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
 
         
+    def check_illegal_operations(self, code):
+        illegal_str = [r"tempdf[ ]=[ ]pd\.read_csv\((.*?)\)", "tempdf[ ]=[ ]pd\.DataFrame\((.*?)\)"]
         
-            
+        for illegal in illegal_str:
+            if bool(re.findall(illegal, code)):
+                raise IllegalLoadingError()
+       
     
     def copy(self, deep=True):
         df = super().copy(deep=deep)

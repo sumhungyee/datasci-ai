@@ -17,3 +17,8 @@ class CodeGenerationError(DataSciAIError):
     def __init__(self, error):
         self.message = f"The generated code produces an error: {str(error)}"
         super().__init__(self.message)
+
+class IllegalLoadingError(DataSciAIError):
+    def __init__(self):
+        self.message = "Illegal loading of data! Please load the data yourself instead of making requests."
+        super().__init__(self.message)
