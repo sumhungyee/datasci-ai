@@ -20,5 +20,7 @@ setup(
         'numpy',
         'scikit-learn',
         'tensorflow',
+        'plotly',
+        'matplotlib'
     ],
 )
