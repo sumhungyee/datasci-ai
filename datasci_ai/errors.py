@@ -20,5 +20,5 @@ class CodeGenerationError(DataSciAIError):
 
 class IllegalLoadingError(DataSciAIError):
     def __init__(self):
-        self.message = "Illegal loading of data! Please load the data yourself instead of making requests."
+        self.message = "Illegal loading of data! Data should not be loaded through requests."
         super().__init__(self.message)

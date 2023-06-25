@@ -40,13 +40,13 @@ class AIDataFrame(pd.DataFrame):
                 print(f"\nError detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
-            # Check if it loads data
+            # Check if it loads data illegally
             try:
                 self.check_illegal_operations(code)
 
             except IllegalLoadingError as i:
                 print(f"\nError encountered: {max_iters-1} tries left. Error: {i}")
-                msg = f"You provided this code:\n{code}\nHowever, you reassigned {self.name} to another value, when {self.name} already contains data.\n Omit this line and rewrite the code."
+                msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
 
