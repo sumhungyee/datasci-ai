@@ -7,8 +7,7 @@ class AIDataFrame(pd.DataFrame):
         super().__init__(data=data, index=index, columns=columns, dtype=dtype, copy=copy)
         self.llm = llm
         self.name = "tempdf"
-        self.df_details = f"""{self.name} is a pandas dataframe and contains data. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the list of its columns are {list(self.columns)}.
-Here is a header of {self.name}:\n{self.head().to_string(index=False)}\n"""
+        self.df_details = f"""You are provided a pandas dataframe stored in the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the here is a dictionary of its columns and their datatypes:{dict(self.dtypes)}.\n"""
         self.prompt = """
 {df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block.  
 ### Instruction: {query}
