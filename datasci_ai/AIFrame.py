@@ -2,7 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import re
 import warnings
-from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError
+import ast
+from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError, IllegalCodeError
 
 class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
@@ -41,21 +42,22 @@ class AIDataFrame(pd.DataFrame):
                 warnings.warn(f"Error detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
-            # Check if it loads data illegally
-            try:
-                self.check_illegal_operations(code)
 
+            # Try executing code
+            try:
+                ai_df = self.safe_exec(code)
+
+            # Capture illegal operations first. Allow model to retry for loading errors, but not illegal code errors eg. unsafe operations.
             except IllegalLoadingError as i:
                 warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {i}")
                 msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
-
-            # Try executing code
-            try:
-                exec(code)
-        
             
+            except IllegalCodeError as ic:
+                raise ic from None
+            
+            # Other exceptions can be handled by retrying.
             except Exception as e: 
                 warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors, writing code in markdown format using one code block."
@@ -63,8 +65,10 @@ class AIDataFrame(pd.DataFrame):
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=eval(f"{self.name}"))
-        
+
+            
         else:
+            # No more retries left
             try:
                 code = reply.extract_code(start_token=start_token)
             except Exception:
@@ -72,22 +76,83 @@ class AIDataFrame(pd.DataFrame):
                 if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
                     raise LanguageError(language) from None
                 raise CodeDetectionError() from None
+            
+            # Try executing code for the last time
             try:
-                exec(code)
+                ai_df = self.safe_exec(code)
+
+            # Raise appropriate illegal errors
+            except (IllegalCodeError, IllegalLoadingError) as illegal:
+                raise illegal from None
+
+            # Raise all others as code generation errors
             except Exception as ex:
                 raise CodeGenerationError(ex) from None
             
-            return AIDataFrame(self.llm, data=eval(f"{self.name}"))
+            return AIDataFrame(self.llm, data=ai_df)
 
+    def safe_exec(self, code):
         
-    def check_illegal_operations(self, code):
-        illegal_str = [r"tempdf[ ]=[ ]pd\.read_csv\((.*?)\)", "tempdf[ ]=[ ]pd\.DataFrame\((.*?)\)"]
+        restricted_functions = {'exec', 'eval', 'open'}
+        disallowed_load_functions = {'read_csv', 'read_parquet', \
+                                'DataFrame', 'read_orc', 'read_sas', 'read_spss', \
+                                'read_sql_table', 'read_sql_query', 'read_sql', 'read_gbq', \
+                                'read_stata'}
+        restricted_modules = {'os', 'subprocess', '__builtins__', 'tempfile', 'socket', 'shutil'}
+
+        class RestrictionVisitor(ast.NodeVisitor):
+            def visit_Call(self, node):
+                if isinstance(node.func, ast.Name):
+                    function_name = node.func.id
+                    if function_name in restricted_functions:
+                        raise IllegalCodeError(function_name)
+                    elif function_name in disallowed_load_functions:
+                        raise IllegalLoadingError()
+
+                elif isinstance(node.func, ast.Attribute):
+                    module_name = node.func.value.id
+                    function_name = node.func.attr
+                    if module_name in restricted_modules:
+                        raise ValueError(f"Access to module '{module_name}' is restricted.")
+                    if function_name in restricted_functions:
+                        raise IllegalCodeError(function_name)
+                    elif function_name in disallowed_load_functions:
+                        raise IllegalLoadingError()
+
+                ast.NodeVisitor.generic_visit(self, node)
         
-        for illegal in illegal_str:
-            if bool(re.findall(illegal, code)):
-                raise IllegalLoadingError()
+
+            def visit_Import(self, node):
+                for alias in node.names:
+                    module_name = alias.name.split('.')[0]
+                    if module_name in restricted_modules:
+                        raise IllegalCodeError(module_name, function=False)            
+                ast.NodeVisitor.generic_visit(self, node)
+
+            def visit_Attribute(self, node):
+                if isinstance(node.value, ast.Name):
+                    module_name = node.value.id
+                    if module_name in restricted_modules:
+                        raise IllegalCodeError(module_name, function=False)
+                ast.NodeVisitor.generic_visit(self, node)
+
+
+        # redundant
+        try:
+            tree = ast.parse(code)
+        except SyntaxError as e:
+            raise SyntaxError("Invalid syntax.") from None
+
+        visitor = RestrictionVisitor()
+        visitor.visit(tree)
+
+        exec(compile(tree, filename='<string>', mode='exec'))
+        return eval(f"{self.name}")
+
+
+
        
-    
+
     def copy(self, deep=True):
         df = super().copy(deep=deep)
         return AIDataFrame(self.llm, data=df)
