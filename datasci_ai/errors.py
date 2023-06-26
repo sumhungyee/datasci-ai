@@ -22,3 +22,11 @@ class IllegalLoadingError(DataSciAIError):
     def __init__(self):
         self.message = "Illegal loading of data! Data should not be loaded through requests."
         super().__init__(self.message)
+
+class IllegalCodeError(DataSciAIError):
+    def __init__(self, name, function=True):
+        if function:
+            self.message = f"Execution of function '{name}' is restricted."
+        else:
+            self.message = f"Access to module '{name}' is restricted."
+        super().__init__(self.message)
