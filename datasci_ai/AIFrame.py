@@ -11,7 +11,7 @@ class AIDataFrame(pd.DataFrame):
         self.name = "tempdf"
         self.df_details = f"""You are provided a pandas dataframe stored in the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the here is a dictionary of its columns and their datatypes:{dict(self.dtypes)}.\n"""
         self.prompt = """
-{df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block.  
+{df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block. The code must be safe to run. 
 ### Instruction: {query}
 ### Response:
 """
