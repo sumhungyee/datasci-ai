@@ -88,7 +88,10 @@ class AIDataFrame(pd.DataFrame):
             return AIDataFrame(self.llm, data=ai_df)
 
     def safe_exec(self, code):
+        '''
+        This method was designed with the aid of ChatGPT
         
+        '''
         restricted_functions = {'exec', 'eval', 'open'}
         disallowed_load_functions = {'read_csv', 'read_parquet', \
                                 'DataFrame', 'read_orc', 'read_sas', 'read_spss', \
@@ -106,10 +109,10 @@ class AIDataFrame(pd.DataFrame):
                         raise IllegalLoadingError()
 
                 elif isinstance(node.func, ast.Attribute):
-                    module_name = node.func.value.id
+                    module_name = node.func.value.id if isinstance(node.func.value, ast.Name) else node.func.value.value.id
                     function_name = node.func.attr
                     if module_name in restricted_modules:
-                        raise ValueError(f"Access to module '{module_name}' is restricted.")
+                        raise IllegalCodeError(module_name, function=False) 
                     if function_name in restricted_functions:
                         raise IllegalCodeError(function_name)
                     elif function_name in disallowed_load_functions:
