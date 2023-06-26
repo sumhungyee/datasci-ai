@@ -21,7 +21,6 @@ class AIDataFrame(pd.DataFrame):
         full_prompt = self.prompt.format(df_details=self.df_details, query=full_query, name=self.name)
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
-        exec(f"{self.name} = self.copy()")
           
         if max_iters > 0:
             # Try extracting code from reply
@@ -142,7 +141,7 @@ class AIDataFrame(pd.DataFrame):
 
         visitor = RestrictionVisitor()
         visitor.visit(tree)
-
+        exec(f"{self.name} = self.copy()")
         exec(compile(tree, filename='<string>', mode='exec'))
         return eval(f"{self.name}")
 
