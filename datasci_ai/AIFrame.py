@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import re
 import warnings
 import ast
 from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError, IllegalCodeError
@@ -23,8 +22,7 @@ class AIDataFrame(pd.DataFrame):
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
         exec(f"{self.name} = self.copy()")
-        
-        
+          
         if max_iters > 0:
             # Try extracting code from reply
             try:
@@ -42,7 +40,6 @@ class AIDataFrame(pd.DataFrame):
                 warnings.warn(f"Error detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
-
             # Try executing code
             try:
                 ai_df = self.safe_exec(code)
@@ -149,9 +146,6 @@ class AIDataFrame(pd.DataFrame):
         exec(compile(tree, filename='<string>', mode='exec'))
         return eval(f"{self.name}")
 
-
-
-       
 
     def copy(self, deep=True):
         df = super().copy(deep=deep)
