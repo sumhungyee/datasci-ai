@@ -60,7 +60,7 @@ class AIDataFrame(pd.DataFrame):
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
-            return AIDataFrame(self.llm, data=eval(f"{self.name}"))
+            return AIDataFrame(self.llm, data=ai_df)
 
             
         else:
