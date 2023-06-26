@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
+import warnings
 from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationError, IllegalLoadingError
 
 class AIDataFrame(pd.DataFrame):
@@ -32,12 +33,12 @@ class AIDataFrame(pd.DataFrame):
                 if language.lower() != "python" and "python" not in language.lower(): # If language isn't python
                     raise LanguageError(language) from None
                 else:
-                    print(f"\nError encountered: {max_iters-1} tries left. Error: {err}")
+                    warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {err}")
                     msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
                     return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
 
             except Exception as f:
-                print(f"\nError detecting code! {max_iters-1} tries left.")
+                warnings.warn(f"Error detecting code! {max_iters-1} tries left.")
                 return self.request(query, verbose=verbose, max_iters=max_iters-1)
             
             # Check if it loads data illegally
@@ -45,7 +46,7 @@ class AIDataFrame(pd.DataFrame):
                 self.check_illegal_operations(code)
 
             except IllegalLoadingError as i:
-                print(f"\nError encountered: {max_iters-1} tries left. Error: {i}")
+                warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {i}")
                 msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
@@ -56,7 +57,7 @@ class AIDataFrame(pd.DataFrame):
         
             
             except Exception as e: 
-                print(f"\nError encountered: {max_iters-1} tries left. Error: {e}")               
+                warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors, writing code in markdown format using one code block."
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
