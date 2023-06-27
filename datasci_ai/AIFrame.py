@@ -11,7 +11,7 @@ class AIDataFrame(pd.DataFrame):
         self.name = "tempdf"
         self.df_details = f"""You are provided a pandas dataframe stored in the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the here is a dictionary of its columns and their datatypes:{dict(self.dtypes)}.\n"""
         self.prompt = """
-{df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block.  
+{df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block. 
 ### Instruction: {query}
 ### Response:
 """
@@ -21,7 +21,6 @@ class AIDataFrame(pd.DataFrame):
         full_prompt = self.prompt.format(df_details=self.df_details, query=full_query, name=self.name)
         start_token = r"```(python)?\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
-        exec(f"{self.name} = self.copy()")
           
         if max_iters > 0:
             # Try extracting code from reply
@@ -61,7 +60,7 @@ class AIDataFrame(pd.DataFrame):
                 plt.close('all')
                 return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
-            return AIDataFrame(self.llm, data=eval(f"{self.name}"))
+            return AIDataFrame(self.llm, data=ai_df)
 
             
         else:
@@ -89,7 +88,7 @@ class AIDataFrame(pd.DataFrame):
             return AIDataFrame(self.llm, data=ai_df)
 
     def safe_exec(self, code):
-        
+
         restricted_functions = {'exec', 'eval', 'open'}
         disallowed_load_functions = {'read_csv', 'read_parquet', \
                                 'DataFrame', 'read_orc', 'read_sas', 'read_spss', \
@@ -107,10 +106,8 @@ class AIDataFrame(pd.DataFrame):
                         raise IllegalLoadingError()
 
                 elif isinstance(node.func, ast.Attribute):
-                    module_name = node.func.value.id
-                    function_name = node.func.attr
-                    if module_name in restricted_modules:
-                        raise ValueError(f"Access to module '{module_name}' is restricted.")
+                    
+                    function_name = node.func.attr 
                     if function_name in restricted_functions:
                         raise IllegalCodeError(function_name)
                     elif function_name in disallowed_load_functions:
@@ -142,7 +139,7 @@ class AIDataFrame(pd.DataFrame):
 
         visitor = RestrictionVisitor()
         visitor.visit(tree)
-
+        exec(f"{self.name} = self.copy()")
         exec(compile(tree, filename='<string>', mode='exec'))
         return eval(f"{self.name}")
 
