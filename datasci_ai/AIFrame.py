@@ -16,7 +16,7 @@ class AIDataFrame(pd.DataFrame):
 ### Response:
 """
 
-    def request(self, query, verbose=True, addon="", max_iters=5):
+    def instruct(self, query, verbose=True, addon="", max_iters=5):
         full_query = query + "\n" + addon if addon else query
         full_prompt = self.prompt.format(df_details=self.df_details, query=full_query, name=self.name)
         start_token = r"```(python)?\r"
@@ -33,11 +33,11 @@ class AIDataFrame(pd.DataFrame):
                 else:
                     warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {err}")
                     msg = f"You replied with the following response\n{reply.text}\nHowever, the code block was not properly formatted in markdown format."
-                    return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                    return self.instruct(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
 
             except Exception as f:
                 warnings.warn(f"Error detecting code! {max_iters-1} tries left.")
-                return self.request(query, verbose=verbose, max_iters=max_iters-1)
+                return self.instruct(query, verbose=verbose, max_iters=max_iters-1)
             
             # Try executing code
             try:
@@ -48,7 +48,7 @@ class AIDataFrame(pd.DataFrame):
                 warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {i}")
                 msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
                 plt.close('all')
-                return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                return self.instruct(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             except IllegalCodeError as ic:
                 raise ic from None
@@ -58,7 +58,7 @@ class AIDataFrame(pd.DataFrame):
                 warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {e}")               
                 msg = f"You provided this code:\n{code}\nHowever, the following error was thrown:\n{e.__class__.__name__}: {e}\nCorrect these errors, writing code in markdown format using one code block."
                 plt.close('all')
-                return self.request(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
+                return self.instruct(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
             return AIDataFrame(self.llm, data=ai_df)
 
