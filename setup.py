@@ -15,7 +15,7 @@ setup(
     ],
     python_requires='>=3.10',
     install_requires=[
-        'ctransformers',
+        'ctransformers[cuda]',
         'transformers',
         'pandas',
         'numpy',
