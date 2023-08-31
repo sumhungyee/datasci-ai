@@ -33,7 +33,7 @@ class Reply:
         return representation.format(text=self.text, time=self.time_elapsed)
 
 class LLM:
-    def __init__(self, path=None, model_file='WizardCoder-15B-1.0.ggmlv3.q4_1.bin', link='TheBloke/WizardCoder-15B-1.0-GGML', model_type='starcoder', llm_model=None, temperature=0.25):
+    def __init__(self, path=None, model_file='wizardcoder-python-13b-v1.0.Q5_K_S.gguf', link='TheBloke/WizardCoder-Python-13B-V1.0-GGUF', model_type='llama', llm_model=None, temperature=0.25):
         if llm_model:
             self.model = llm_model
         elif not path:

@@ -8,7 +8,7 @@ import unittest
 class AIFrameTest(unittest.TestCase):
     def setUp(self):
         self.df = pd.DataFrame(data={'x': [i for i in range(10)], 'y': [2 * j + 3 for j in range(10)]})
-        self.llm = model.LLM(path="C:\WizardCoder-15B-1.0.ggmlv3.q4_1.bin")
+        self.llm = model.LLM(path="C:/wizardcoder-python-13b-v1.0.Q5_K_S.gguf")
         self.aidf = AIFrame.AIDataFrame(llm=self.llm)
 
     def test_query_1(self):
