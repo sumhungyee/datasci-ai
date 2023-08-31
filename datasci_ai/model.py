@@ -33,13 +33,13 @@ class Reply:
         return representation.format(text=self.text, time=self.time_elapsed)
 
 class LLM:
-    def __init__(self, path=None, model_file='wizardcoder-python-13b-v1.0.Q5_K_S.gguf', link='TheBloke/WizardCoder-Python-13B-V1.0-GGUF', model_type='llama', llm_model=None, temperature=0.25):
+    def __init__(self, path=None, model_file='wizardcoder-python-13b-v1.0.Q5_K_S.gguf', link='TheBloke/WizardCoder-Python-13B-V1.0-GGUF', model_type='llama', llm_model=None, temperature=0.25, gpu_layers=20):
         if llm_model:
             self.model = llm_model
         elif not path:
-            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file, temperature=temperature)
+            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file, temperature=temperature, gpu_layers=gpu_layers)
         else:
-            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type, temperature=temperature)
+            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type, temperature=temperature, gpu_layers=gpu_layers)
         self.last_reply = ""
         
     def generate_reply(self, prompt, verbose=False) -> Reply:
