@@ -6,9 +6,10 @@ from datasci_ai.errors import LanguageError, CodeDetectionError, CodeGenerationE
 
 class AIDataFrame(pd.DataFrame):
     def __init__(self, llm, data=None, index=None, columns=None, dtype=None, copy=None):
-        super().__init__(data=data, index=index, columns=columns, dtype=dtype, copy=copy)
+        super().__init__(data=data, index=index, columns=columns, dtype=dtype, copy=copy)     
         self.llm = llm
         self.name = "tempdf"
+        self.no_loading_msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
         self.df_details = f"""You are provided a pandas dataframe stored in the variable {self.name}. {self.name} has {self.shape[0]} rows and {self.shape[1]} columns, and the here is a dictionary of its columns and their datatypes:{dict(self.dtypes)}.\n"""
         self.prompt = """
 {df_details}Below is an instruction that describes a programming task. Write a response that appropriately completes the request and provide code to perform some operations on this existing DataFrame {name}. Write in markdown format and use only one code block. 
@@ -19,7 +20,7 @@ class AIDataFrame(pd.DataFrame):
     def instruct(self, query, verbose=True, addon="", max_iters=5):
         full_query = query + "\n" + addon if addon else query
         full_prompt = self.prompt.format(df_details=self.df_details, query=full_query, name=self.name)
-        start_token = r"```(python)?\r"
+        start_token = r"```python\r"
         reply = self.llm.generate_reply(full_prompt, verbose=verbose) # returns a Reply
           
         if max_iters > 0:
@@ -46,7 +47,7 @@ class AIDataFrame(pd.DataFrame):
             # Capture illegal operations first. Allow model to retry for loading errors, but not illegal code errors eg. unsafe operations.
             except IllegalLoadingError as i:
                 warnings.warn(f"Error encountered: {max_iters-1} tries left. Error: {i}")
-                msg = f"{self.name} already contains data and there is no need to create a new dataframe or load it."
+                msg = self.no_loading_msg
                 plt.close('all')
                 return self.instruct(query, verbose=verbose, addon=msg, max_iters=max_iters-1)
             
