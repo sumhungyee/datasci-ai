@@ -37,9 +37,9 @@ class LLM:
         if llm_model:
             self.model = llm_model
         elif not path:
-            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file, temperature=temperature, gpu_layers=gpu_layers)
+            self.model = AutoModelForCausalLM.from_pretrained(link, model_file=model_file, temperature=temperature, gpu_layers=gpu_layers, context_length=2048)
         else:
-            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type, temperature=temperature, gpu_layers=gpu_layers)
+            self.model = AutoModelForCausalLM.from_pretrained(path, model_type=model_type, temperature=temperature, gpu_layers=gpu_layers, context_length=2048)
         self.last_reply = ""
         
     def generate_reply(self, prompt, verbose=False) -> Reply:
